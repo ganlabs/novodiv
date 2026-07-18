@@ -1,0 +1,64 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ambiente
+.env
+.env.local
+.env.*.local
+
+# ============================================================
+# Pastas de TRABALHO do usuário — NÃO versionar conteúdo
+# (manter a pasta vazia com .gitkeep se necessário)
+# ============================================================
+
+# Entrada de PDFs (o usuário coloca arquivos aqui)
+processos/*
+!processos/.gitkeep
+NOVOS/*
+!NOVOS/.gitkeep
+erros/*
+!erros/.gitkeep
+procon/*
+!procon/.gitkeep
+
+# Saída de PDFs (gerados pelo app)
+teste1/*
+!teste1/.gitkeep
+
+# Builds (não há build step, mas se um dia houver)
+dist/
+build/
+*.min.js
+*.bundle.js
+
+# Dependências (não há, mas se um dia houver)
+node_modules/
+bower_components/
+vendor/
+
+# Cache
+.cache/
+.parcel-cache/
+.eslintcache
+
+# Cobertura
+coverage/
+*.lcov
+.nyc_output/
