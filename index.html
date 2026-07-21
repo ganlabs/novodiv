@@ -138,9 +138,9 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 // ============================================================
 
 const START_PATTERNS = [
-    /EXCELENTÍSSIMO/i, /EXCELENTISSIMO/i,
+    /EXCELENT[ÍI]SSIM[OA]\b/i,
     /AO\s+DOUTO\s+JU[ÍI]ZO/i, /AO\s+JU[ÍI]ZO/i,
-    /AO\s+JU[ÍI]ZADO/i, /EXMO\.?\s*(?:SR\.?)\s+DR\.?\s+JU[ÍI]Z/i,
+    /AO\s+(?:DOUTO\s+)?JU[ÍI]ZADO\b/i, /EXMO\.?\s*(?:SR\.?)\s+DR\.?\s+JU[ÍI]Z/i,
     /JU[ÍI]ZO\s+DE\s+DIREITO\s+DA\s+VARA/i,
     /MERITÍSSIMO/i, /MERITISSIMO/i,
     /EXMO\s*\(A\)/i, /EXMO\.?\s*(?:\(A\)\s*)?DR?\.?\s*JU[ÍI]Z/i,
@@ -203,6 +203,7 @@ function isNewDocByContent(text) {
     if (/^Processo:\s*\d/.test(first)) return true;
     if (/^TERMO DE NOTIFICA/i.test(first)) return true;
     if (/^Para\s+conferir\s+o\s+original/i.test(first)) return true;
+    if (/^(?:Carteira\s+de\s+Trabalho|RG|Cédula\s+de\s+Identidade|COMPROVANTE|DECLARAÇÃO|Termo\s+de\s+Audi[êe]ncia|CERTIDÃO)/i.test(first)) return true;
     return false;
 }
 
@@ -223,7 +224,7 @@ function isRealClosing(text) {
 function hasPetitionEndSignal(text) {
     const last20 = text.split('\n').slice(-20).join('\n');
     const hasClosing = isRealClosing(last20);
-    const hasOAB = /OAB[/-]/.test(text) || /OAB\s*\d/.test(text);
+    const hasOAB = /OAB[/-]/.test(text) || /OAB\s*\d/.test(text) || /Defensor(?:ia|a|e)?\s+Públic[ao]/i.test(text);
     const hasValor = /valor\s+da\s+causa|Dá-se\s+(?:a|à)\s+causa/i.test(last20);
     const hasValorRS = /Valor:\s*R\$/i.test(last20);
     const hasFls = /fls\.\s*\d+/i.test(last20);
@@ -237,7 +238,16 @@ async function detectInicialRange(pdfBytes) {
     for (let i = 1; i <= totalPages; i++) {
         const page = await doc.getPage(i);
         const tc = await page.getTextContent();
-        pagesText.push(tc.items.map(item => item.str).join('\n'));
+        let text = '';
+        let lastY = -1;
+        for (const item of tc.items) {
+            if (lastY !== -1 && Math.abs(lastY - item.transform[5]) > 2) {
+                text += '\n';
+            }
+            text += item.str;
+            lastY = item.transform[5];
+        }
+        pagesText.push(text);
     }
 
     let flags = [];
@@ -367,7 +377,7 @@ async function detectInicialRange(pdfBytes) {
         if (i >= startPage - 1) {
             const last20 = txt.split('\n').slice(-20).join('\n');
             const hasC = isRealClosing(last20);
-            const hasO = /OAB[/-]/.test(last20) || /OAB\s*\d/.test(last20);
+            const hasO = /OAB[/-]/.test(last20) || /OAB\s*\d/.test(last20) || /Defensor(?:ia|a|e)?\s+Públic[ao]/i.test(last20);
             if (hasC && hasO) {
                 if (endByClosingOnly === null) endByClosingOnly = page;
                 if (endByClosingConfirmed === null && i + 1 < totalPages)
