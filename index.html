@@ -212,6 +212,9 @@ function isRealClosing(text) {
         const re = new RegExp(pat.source, 'gi');
         let m;
         while ((m = re.exec(text)) !== null) {
+            if (/causa/i.test(m[0])) return true;
+            if (/termos/i.test(m[0])) return true;
+
             const after = text.slice(m.index + m[0].length, m.index + m[0].length + 15).trim();
             const firstWord = (after.split(/\s+/)[0] || '').toLowerCase();
             if (CONTINUATION_WORDS.includes(firstWord)) continue;
@@ -224,7 +227,7 @@ function isRealClosing(text) {
 function hasPetitionEndSignal(text) {
     const last20 = text.split('\n').slice(-20).join('\n');
     const hasClosing = isRealClosing(last20);
-    const hasOAB = /OAB[/-]/.test(text) || /OAB\s*\d/.test(text) || /Defensor(?:ia|a|e)?\s+Públic[ao]/i.test(text);
+    const hasOAB = /OAB[/-]/.test(text) || /OAB\s*(?:n[º°]\s*)?\d/.test(text) || /Defensor(?:ia|a|e)?\s+Públic[ao]/i.test(text);
     const hasValor = /valor\s+da\s+causa|Dá-se\s+(?:a|à)\s+causa/i.test(last20);
     const hasValorRS = /Valor:\s*R\$/i.test(last20);
     const hasFls = /fls\.\s*\d+/i.test(last20);
@@ -377,7 +380,7 @@ async function detectInicialRange(pdfBytes) {
         if (i >= startPage - 1) {
             const last20 = txt.split('\n').slice(-20).join('\n');
             const hasC = isRealClosing(last20);
-            const hasO = /OAB[/-]/.test(last20) || /OAB\s*\d/.test(last20) || /Defensor(?:ia|a|e)?\s+Públic[ao]/i.test(last20);
+            const hasO = /OAB[/-]/.test(last20) || /OAB\s*(?:n[º°]\s*)?\d/.test(last20) || /Defensor(?:ia|a|e)?\s+Públic[ao]/i.test(last20);
             if (hasC && hasO) {
                 if (endByClosingOnly === null) endByClosingOnly = page;
                 if (endByClosingConfirmed === null && i + 1 < totalPages)
