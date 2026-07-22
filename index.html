@@ -245,7 +245,7 @@ body {
             <div class="modal-body">
                 <table class="report-table" id="reportTable">
                     <thead>
-                        <tr><th>Arquivo</th><th>CNJ</th><th>Páginas Iniciais</th><th>Visualizar</th><th>Status</th></tr>
+                        <tr><th>Arquivo</th><th>Páginas Iniciais</th><th>Visualizar</th><th>Status</th></tr>
                     </thead>
                     <tbody id="reportTbody"></tbody>
                 </table>
@@ -870,7 +870,6 @@ function renderReport() {
         if (r.error) {
             html += `<tr>
                 <td>📄 ${r.file}</td>
-                <td>${r.cnj || '-'}</td>
                 <td>-</td>
                 <td>-</td>
                 <td><span class="badge badge-red">Erro: ${r.error}</span></td>
@@ -887,7 +886,6 @@ function renderReport() {
 
             html += `<tr>
                 <td>📄 ${r.file}</td>
-                <td style="font-family:monospace">${r.cnj}</td>
                 <td>${r.start} a ${r.end} (${r.pages}p)</td>
                 <td>${btnIni} ${btnDocs}</td>
                 <td>${badge}</td>
