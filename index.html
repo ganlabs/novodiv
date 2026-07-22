@@ -152,6 +152,14 @@ body {
 .badge-yellow { background: #fff3cd; color: #856404; }
 .badge-red { background: #f8d7da; color: #721c24; }
 
+/* Buttons in Table */
+.btn-tiny {
+    background: #e9ecef; border: 1px solid #ccc; border-radius: 6px;
+    padding: 4px 10px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;
+    font-weight: 700; color: var(--black); margin-right: 5px;
+}
+.btn-tiny:hover { background: var(--gold); border-color: var(--dark-gold); }
+
 /* Mini Log */
 .mini-log {
     background: #1a1a1a; color: #4ade80; padding: 10px 15px; border-radius: 8px;
@@ -236,10 +244,23 @@ body {
             <div class="modal-body">
                 <table class="report-table" id="reportTable">
                     <thead>
-                        <tr><th>Arquivo</th><th>CNJ</th><th>Páginas Iniciais</th><th>Flags</th><th>Status</th></tr>
+                        <tr><th>Arquivo</th><th>CNJ</th><th>Páginas Iniciais</th><th>Visualizar</th><th>Status</th></tr>
                     </thead>
                     <tbody id="reportTbody"></tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VISUALIZADOR DE PDF -->
+    <div class="modal-overlay" id="pdfModal" style="z-index: 200;">
+        <div class="modal-content" style="width: 95%; height: 95%; max-width: 1400px; max-height: 95vh;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="pdfModalTitle">Visualizador</h3>
+                <button class="modal-close" id="btnClosePdfModal">&times;</button>
+            </div>
+            <div class="modal-body" style="padding:0; overflow:hidden;">
+                <iframe id="pdfViewer" style="width:100%; height:100%; border:none;" src=""></iframe>
             </div>
         </div>
     </div>
@@ -615,6 +636,8 @@ async function detectInicialRange(pdfBytes) {
 
 let filesToProcess = [];
 let reportData = [];
+let globalDestDir = null;
+let currentPdfUrl = null;
 
 // Elementos
 const dropZone = document.getElementById('dropZone');
@@ -648,6 +671,11 @@ const modalOverlay = document.getElementById('modalOverlay');
 const btnCloseModal = document.getElementById('btnCloseModal');
 const reportTbody = document.getElementById('reportTbody');
 
+const pdfModal = document.getElementById('pdfModal');
+const btnClosePdfModal = document.getElementById('btnClosePdfModal');
+const pdfViewer = document.getElementById('pdfViewer');
+const pdfModalTitle = document.getElementById('pdfModalTitle');
+
 // Eventos
 dropZone.addEventListener('click', () => fileInput.click());
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
@@ -660,6 +688,18 @@ btnProcess.addEventListener('click', processarTudo);
 btnViewReport.addEventListener('click', () => modalOverlay.classList.add('active'));
 btnCloseModal.addEventListener('click', () => modalOverlay.classList.remove('active'));
 modalOverlay.addEventListener('click', e => { if(e.target === modalOverlay) modalOverlay.classList.remove('active'); });
+
+btnClosePdfModal.addEventListener('click', closePdfModal);
+pdfModal.addEventListener('click', e => { if(e.target === pdfModal) closePdfModal(); });
+
+function closePdfModal() {
+    pdfModal.classList.remove('active');
+    pdfViewer.src = '';
+    if (currentPdfUrl) {
+        URL.revokeObjectURL(currentPdfUrl);
+        currentPdfUrl = null;
+    }
+}
 
 function handleFiles(files) {
     const pdfs = files.filter(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
@@ -741,9 +781,8 @@ async function salvar(dir, nome, bytes) {
 }
 
 async function processarTudo() {
-    let destDir;
     try {
-        destDir = await window.showDirectoryPicker({ mode: 'readwrite' });
+        globalDestDir = await window.showDirectoryPicker({ mode: 'readwrite' });
     } catch {
         alert('É necessário selecionar uma pasta de destino para salvar os PDFs.');
         return;
@@ -759,7 +798,7 @@ async function processarTudo() {
     let counts = { ok: 0, review: 0, err: 0 };
     reportData = [];
 
-    log(`Destino selecionado: ${destDir.name}`);
+    log(`Destino selecionado: ${globalDestDir.name}`);
 
     for (let i = 0; i < total; i++) {
         const f = filesToProcess[i];
@@ -782,13 +821,13 @@ async function processarTudo() {
             }
 
             log(`Separando PDF (${range.start} a ${range.end})...`);
-            await splitSavePDF(f, range.start, range.end, destDir, cnj);
+            await splitSavePDF(f, range.start, range.end, globalDestDir, cnj);
 
             const needsReview = range.flags.includes('review');
             if (needsReview) counts.review++; else counts.ok++;
 
             reportData.push({ 
-                file: f.name, cnj, start: range.start, end: range.end, 
+                file: f.name, cnj, start: range.start, end: range.end, total: range.total,
                 pages: range.end - range.start + 1, flags: range.flags, needsReview 
             });
 
@@ -815,7 +854,7 @@ async function processarTudo() {
         progressSection.classList.add('hidden');
         doneSection.classList.remove('hidden');
         
-        let msg = `Todos os arquivos foram salvos na pasta <strong>${destDir.name}</strong>.`;
+        let msg = `Todos os arquivos foram salvos na pasta <strong>${globalDestDir.name}</strong>.`;
         if (counts.review > 0) {
             msg += `<br><span style="color:var(--warning)">Atenção: ${counts.review} arquivo(s) precisam de revisão manual.</span>`;
         }
@@ -840,16 +879,39 @@ function renderReport() {
                 ? '<span class="badge badge-yellow">👁️ Revisar</span>' 
                 : '<span class="badge badge-green">✅ OK</span>';
             const flags = r.flags.filter(f => f !== 'review').join(', ') || '-';
+            
+            const btnIni = `<button class="btn-tiny" onclick="viewPdf('Inicial', '${r.cnj}')">👁️ Inicial</button>`;
+            const hasDocs = (r.start > 1 || r.end < r.total);
+            const btnDocs = hasDocs ? `<button class="btn-tiny" onclick="viewPdf('Docs', '${r.cnj}')">👁️ Docs</button>` : '';
+
             html += `<tr>
                 <td>📄 ${r.file}</td>
                 <td style="font-family:monospace">${r.cnj}</td>
                 <td>${r.start} a ${r.end} (${r.pages}p)</td>
-                <td>${flags}</td>
+                <td>${btnIni} ${btnDocs}</td>
                 <td>${badge}</td>
             </tr>`;
         }
     }
     reportTbody.innerHTML = html;
+}
+
+async function viewPdf(type, cnj) {
+    if (!globalDestDir) return;
+    try {
+        const fileName = `${type}_${cnj}.pdf`;
+        const handle = await globalDestDir.getFileHandle(fileName);
+        const file = await handle.getFile();
+        
+        if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
+        currentPdfUrl = URL.createObjectURL(file);
+        
+        pdfModalTitle.textContent = fileName;
+        pdfViewer.src = currentPdfUrl;
+        pdfModal.classList.add('active');
+    } catch (e) {
+        alert("Não foi possível carregar o PDF gerado: " + e.message);
+    }
 }
 </script>
 </body>
