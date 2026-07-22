@@ -778,9 +778,13 @@ pdfModal.addEventListener('click', e => { if(e.target === pdfModal) closePdfModa
 
 // Controles do Visualizador Customizado
 const customViewer = document.getElementById('customViewer');
+let lastWheelTime = 0;
 
 customViewer.addEventListener('wheel', async (e) => {
     if (isRenderingPage || !currentDoc) return;
+    
+    // Cooldown de 400ms para evitar que a inercia da rolagem pule multiplas paginas
+    if (Date.now() - lastWheelTime < 400) return;
     
     const atTop = customViewer.scrollTop <= 10;
     const atBottom = Math.ceil(customViewer.scrollTop + customViewer.clientHeight) >= customViewer.scrollHeight - 10;
@@ -788,12 +792,14 @@ customViewer.addEventListener('wheel', async (e) => {
     if (e.deltaY > 0) { 
         if (atBottom && currentPageNum < currentDoc.numPages) {
             e.preventDefault();
+            lastWheelTime = Date.now();
             await renderPage(currentPageNum + 1);
             customViewer.scrollTop = 0;
         }
     } else if (e.deltaY < 0) {
         if (atTop && currentPageNum > 1) {
             e.preventDefault();
+            lastWheelTime = Date.now();
             await renderPage(currentPageNum - 1);
             customViewer.scrollTop = customViewer.scrollHeight; 
         }
