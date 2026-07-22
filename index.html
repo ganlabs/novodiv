@@ -271,6 +271,7 @@ body {
                 <div class="flex-center">
                     <button class="btn btn-gold" id="btnRestart">🔄 Novo Processamento</button>
                     <button class="btn btn-outline" id="btnViewReport">📊 Ver Relatório</button>
+                    <button class="btn btn-outline" id="btnExportCsv">📥 Exportar CSV</button>
                 </div>
             </div>
         </div>
@@ -708,6 +709,7 @@ const doneSection = document.getElementById('doneSection');
 const doneMessage = document.getElementById('doneMessage');
 const btnRestart = document.getElementById('btnRestart');
 const btnViewReport = document.getElementById('btnViewReport');
+const btnExportCsv = document.getElementById('btnExportCsv');
 
 const modalOverlay = document.getElementById('modalOverlay');
 const btnCloseModal = document.getElementById('btnCloseModal');
@@ -732,6 +734,7 @@ btnClear.addEventListener('click', limparTudo);
 btnRestart.addEventListener('click', limparTudo);
 btnProcess.addEventListener('click', processarTudo);
 btnViewReport.addEventListener('click', () => modalOverlay.classList.add('active'));
+btnExportCsv.addEventListener('click', exportToCsv);
 btnCloseModal.addEventListener('click', () => modalOverlay.classList.remove('active'));
 modalOverlay.addEventListener('click', e => { if(e.target === modalOverlay) modalOverlay.classList.remove('active'); });
 
@@ -745,6 +748,39 @@ function closePdfModal() {
         URL.revokeObjectURL(currentPdfUrl);
         currentPdfUrl = null;
     }
+}
+
+function exportToCsv() {
+    if (!reportData || reportData.length === 0) return;
+
+    const cabecalho = ["Arquivo", "CNJ", "Pagina_Inicial", "Pagina_Final", "Total_Paginas_Peticao", "Status", "Precisa_Revisao", "Flags", "Mensagem_Erro"];
+    const linhas = [cabecalho.join(';')];
+
+    for (const r of reportData) {
+        const cnj = r.cnj || '';
+        const start = r.start || '';
+        const end = r.end || '';
+        const pages = r.pages || '';
+        const erro = r.error ? `"${r.error.replace(/"/g, '""')}"` : '';
+        const status = r.error ? 'ERRO' : (r.needsReview ? 'REVISAR' : 'OK');
+        const precisaRev = r.needsReview ? 'SIM' : 'NÃO';
+        const flags = r.flags && r.flags.length > 0 ? `"${r.flags.join(', ')}"` : '';
+        
+        const linha = [
+            `"${r.file}"`, cnj, start, end, pages, status, precisaRev, flags, erro
+        ];
+        linhas.push(linha.join(';'));
+    }
+
+    const csvBlob = new Blob(["\uFEFF" + linhas.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(csvBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `NovoDiv_Relatorio_${new Date().toISOString().replace(/[:.]/g, '-').substring(0,19)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
 function handleFiles(files) {
