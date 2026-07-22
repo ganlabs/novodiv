@@ -235,26 +235,24 @@ type Flag = 'PROCON' | 'TERMO2' | 'review' | string
 
 ## 8. UI/UX
 
-### 8.1 Paleta de cores
+### 8.1 Paleta de cores e Tema
 | Token | Hex | Uso |
 |-------|-----|-----|
 | `--gold` | `#FFC107` | Botões primários, ícones |
-| `--dark-gold` | `#FFA000` | Hover |
-| `--black` | `#1A1A1A` | Texto |
+| `--dark-gold` | `#FFA000` | Hover, gradientes |
+| `--black` | `#1A1A1A` | Texto e log |
 | `--gray` | `#666` | Texto secundário |
-| Background | `radial-gradient(circle at 60% 100%, #d4b52b 0%, #685a21 40%, #2f2a18 100%)` | Body |
+| Background | `radial-gradient(...)` | Fundo fixo |
+| Estilo principal| `Glassmorphism` | Cards (`rgba(255,255,255,0.96) + blur(12px)`) |
 
-### 8.2 Estados visuais do relatório
-| Badge | Cor | Significado |
-|-------|-----|-------------|
-| `✅ OK` | Verde (`#28a745`) | Confidence ≥ 3, sem flags críticas |
-| `👁️ Revisar` | Amarelo (`#fd7e14`) | Confidence < 3 ou flag `review` |
-| `❌ Erro` | Vermelho (`#dc3545`) | Falha no processamento |
+### 8.2 Layout (Dashboard Workflow)
+A interface adota um modelo "Step by Step" centralizado, prevenindo rolagem (scroll) de tela:
+- **Passo 1 (Upload):** Dropzone grande.
+- **Passo 2 (Dashboard):** Quatro Cards de Estatística (Total, Concluídos, Revisar, Erros) atualizados em tempo real, barra de progresso espessa (CSS Gradient) e um log rotativo de uma linha (`mini-log`).
+- **Passo 3 (Concluído):** Oculta a barra de progresso, exibe mensagem final e libera botões "Novo Processamento" ou "Ver Relatório".
 
-### 8.3 Barra de confiança
-- Verde (`#28a745`): alta (≥ 4)
-- Dourado (`#FFC107`): média (= 3)
-- Vermelho (`#dc3545`): baixa (≤ 2)
+### 8.3 Relatório em Modal
+A tabela final que cruza todas as flags e status foi movida para uma camada de Modal (`Overlay`) que se sobrepõe à interface apenas quando requisitada, mantendo a tela base livre de "data-clutter".
 
 ---
 

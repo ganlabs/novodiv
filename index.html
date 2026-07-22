@@ -12,6 +12,10 @@
     --black: #1A1A1A;
     --dark: #2f2a18;
     --gray: #666;
+    --bg-light: #f8f9fa;
+    --success: #28a745;
+    --warning: #fd7e14;
+    --danger: #dc3545;
 }
 * { box-sizing: border-box; }
 body {
@@ -21,120 +25,230 @@ body {
     background-attachment: fixed;
     color: var(--black);
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
 }
-.container { max-width: 950px; margin: 0 auto; padding: 20px; }
-.logo { text-align: center; margin: 20px 0; }
-.logo img { height: 70px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3)); }
-.title { text-align: center; color: white; font-weight: 800; font-size: 1.8rem; margin: 10px 0 5px; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-.subtitle { text-align: center; color: rgba(255,255,255,0.85); margin: 0 0 25px; font-weight: 500; }
-.card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.logo { margin-bottom: 20px; }
+.logo img { height: 60px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3)); }
+.title { color: white; font-weight: 800; font-size: 2rem; margin: 0 0 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+.subtitle { color: rgba(255,255,255,0.85); margin: 0 0 30px; font-weight: 500; font-size: 1.1rem; text-align: center; max-width: 600px; }
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 40px;
+    width: 100%;
+    max-width: 800px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+    position: relative;
+    overflow: hidden;
+}
+
+/* UI Helpers */
+.hidden { display: none !important; }
+.flex-center { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.mt-20 { margin-top: 20px; }
+.mb-20 { margin-bottom: 20px; }
+.text-center { text-align: center; }
+
+/* Buttons */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: none; border-radius: 10px; padding: 14px 28px; font-size: 1rem;
+    font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-gold { background: linear-gradient(135deg, var(--gold), var(--dark-gold)); color: var(--black); }
+.btn-outline { background: transparent; border: 2px solid var(--gray); color: var(--gray); }
+.btn-outline:hover { border-color: var(--black); color: var(--black); }
+
+/* Step 1: Upload */
 .drop-zone {
     border: 2px dashed #ccc;
-    border-radius: 12px;
-    padding: 40px 20px;
+    border-radius: 16px;
+    padding: 50px 20px;
     text-align: center;
     cursor: pointer;
     transition: all 0.2s;
-    background: #fafafa;
+    background: var(--bg-light);
 }
-.drop-zone:hover, .drop-zone.dragover { border-color: var(--gold); background: #fffcf5; }
-.drop-zone-icon { font-size: 3rem; color: var(--gold); margin-bottom: 10px; }
-.drop-zone-text { font-size: 1.1rem; color: var(--gray); }
-.drop-zone-hint { font-size: 0.85rem; color: #999; margin-top: 8px; }
-.btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    border: none; border-radius: 8px; padding: 12px 24px;
-    font-weight: 700; cursor: pointer; transition: all 0.2s;
+.drop-zone:hover, .drop-zone.dragover { border-color: var(--dark-gold); background: #fffcf5; }
+.drop-zone-icon { font-size: 3.5rem; color: var(--gold); margin-bottom: 15px; }
+.drop-zone-title { font-size: 1.3rem; font-weight: 700; color: var(--black); margin-bottom: 8px; }
+.drop-zone-desc { font-size: 0.95rem; color: var(--gray); }
+.file-badge {
+    display: inline-block; background: #e9ecef; color: #495057; font-weight: 600;
+    padding: 6px 14px; border-radius: 20px; font-size: 0.9rem; margin-top: 20px;
 }
-.btn:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-.btn-gold { background: var(--gold); color: var(--black); }
-.btn-outline { background: transparent; border: 2px solid var(--gold); color: var(--gold); }
-.btn-green { background: #28a745; color: white; }
-.progress { height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden; margin: 15px 0; }
-.progress-bar { height: 100%; background: var(--gold); width: 0%; transition: width 0.3s; border-radius: 4px; }
-.log-area {
-    background: #1a1a1a; color: #0f0; border-radius: 8px; padding: 12px;
-    font-family: 'Courier New', monospace; font-size: 0.8rem; max-height: 250px;
-    overflow-y: auto; margin-top: 15px; white-space: pre-wrap; display: none;
-}
-.hidden { display: none !important; }
-.flex { display: flex; gap: 10px; flex-wrap: wrap; }
-.flex-center { align-items: center; justify-content: center; }
-.flex-between { align-items: center; justify-content: space-between; }
-.mt-10 { margin-top: 10px; }
-.mt-15 { margin-top: 15px; }
-.text-center { text-align: center; }
-.text-small { font-size: 0.85rem; color: var(--gray); }
 
-/* Tabela do relatorio */
+/* Step 2 & 3: Stats Dashboard */
+.stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;
+}
+.stat-box {
+    background: var(--bg-light); border-radius: 14px; padding: 20px 10px; text-align: center;
+    border: 1px solid #e9ecef; transition: transform 0.2s;
+}
+.stat-box:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.stat-value { font-size: 2.2rem; font-weight: 800; line-height: 1; margin-bottom: 5px; }
+.stat-label { font-size: 0.8rem; text-transform: uppercase; font-weight: 700; color: var(--gray); letter-spacing: 0.5px; }
+.color-ok { color: var(--success); }
+.color-warn { color: var(--warning); }
+.color-err { color: var(--danger); }
+
+/* Progress Bar */
+.progress-container { margin: 30px 0; }
+.progress-wrap {
+    height: 28px; background: #e9ecef; border-radius: 14px; position: relative; overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+.progress-bar {
+    height: 100%; width: 0%; border-radius: 14px; transition: width 0.4s ease;
+    background: linear-gradient(90deg, #f5d142, #FFA000);
+    position: relative;
+}
+.progress-bar::after {
+    content: ""; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.2) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, transparent 75%, transparent);
+    background-size: 30px 30px; animation: moveStripes 1s linear infinite;
+}
+@keyframes moveStripes { 0% { background-position: 0 0; } 100% { background-position: 30px 0; } }
+.progress-text {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.95rem; color: #000; text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+}
+.status-text { font-size: 0.95rem; color: var(--gray); font-weight: 500; text-align: center; margin-top: 10px; height: 20px; }
+
+/* Modal (Overlay) */
+.modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.modal-overlay.active { opacity: 1; pointer-events: auto; }
+.modal-content {
+    background: white; border-radius: 16px; width: 90%; max-width: 900px; max-height: 85vh;
+    display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    transform: translateY(20px); transition: transform 0.3s;
+}
+.modal-overlay.active .modal-content { transform: translateY(0); }
+.modal-header { padding: 20px 24px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+.modal-title { margin: 0; font-size: 1.2rem; font-weight: 800; }
+.modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray); }
+.modal-body { padding: 0; overflow-y: auto; flex: 1; }
+
+/* Report Table */
 .report-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-.report-table th { background: #f8f9fa; padding: 10px 12px; text-align: left; font-weight: 700; border-bottom: 2px solid #dee2e6; }
-.report-table td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+.report-table th { background: var(--bg-light); padding: 12px 16px; text-align: left; font-weight: 700; position: sticky; top: 0; z-index: 1; box-shadow: 0 1px 0 #eee; }
+.report-table td { padding: 12px 16px; border-bottom: 1px solid #eee; }
 .report-table tr:hover { background: #fffcf5; }
-.conf-bar { display: inline-block; width: 50px; height: 6px; background: #e9ecef; border-radius: 3px; vertical-align: middle; }
-.conf-fill { height: 100%; border-radius: 3px; }
-.conf-high .conf-fill { background: #28a745; width: 100%; }
-.conf-medium .conf-fill { background: var(--gold); width: 60%; }
-.conf-low .conf-fill { background: #dc3545; width: 30%; }
-.badge { display: inline-block; border-radius: 4px; padding: 2px 8px; font-size: 0.7rem; font-weight: 700; }
+.badge { padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; display: inline-block; }
 .badge-green { background: #d4edda; color: #155724; }
 .badge-yellow { background: #fff3cd; color: #856404; }
 .badge-red { background: #f8d7da; color: #721c24; }
-.badge-review { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+
+/* Mini Log */
+.mini-log {
+    background: #1a1a1a; color: #4ade80; padding: 10px 15px; border-radius: 8px;
+    font-family: 'Courier New', monospace; font-size: 0.8rem; margin-top: 20px;
+    height: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="logo">
-        <img src="logo.png" alt="Gondim Logo">
-    </div>
+    <div class="logo"><img src="logo.png" alt="Gondim Logo"></div>
     <h1 class="title">NovoDiv</h1>
-    <p class="subtitle">Selecione os PDFs integrais. A ferramenta detecta a Petição Inicial, divide e salva na pasta de destino. Depois mostra o relatório para revisão.</p>
+    <p class="subtitle">Divisor inteligente de PDFs. Extração local, privada e offline.</p>
 
-    <div class="card">
-        <div class="drop-zone" id="dropZone">
-            <div class="drop-zone-icon">📄</div>
-            <div class="drop-zone-text"><strong>Clique para selecionar</strong> ou arraste PDFs aqui</div>
-            <div class="drop-zone-hint">Aceita múltiplos arquivos. O nome deve conter o CNJ (número do processo).</div>
+    <div class="glass-card" id="mainCard">
+        
+        <!-- STEP 1: Upload -->
+        <div id="stepUpload">
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-icon">📥</div>
+                <div class="drop-zone-title">Clique ou arraste seus PDFs aqui</div>
+                <div class="drop-zone-desc">Selecione PDFs integrais. O nome deve conter o CNJ.</div>
+                <div id="fileBadge" class="file-badge hidden">0 arquivos selecionados</div>
+            </div>
+            <input type="file" id="fileInput" accept=".pdf" multiple hidden>
+            
+            <div class="flex-center mt-20 hidden" id="actionUpload">
+                <button class="btn btn-gold" id="btnProcess">⚡ Processar PDFs</button>
+                <button class="btn btn-outline" id="btnClear">Limpar</button>
+            </div>
         </div>
-        <input type="file" id="fileInput" accept=".pdf" multiple hidden>
 
-        <div id="fileList" class="file-list hidden"></div>
+        <!-- STEP 2 & 3: Dashboard -->
+        <div id="stepDashboard" class="hidden">
+            <h3 id="dashTitle" style="margin-top:0; font-weight:800; text-align:center;">Processando...</h3>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value color-ok" id="statOk">0</div>
+                    <div class="stat-label">Concluídos</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value color-warn" id="statReview">0</div>
+                    <div class="stat-label">A Revisar</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value color-err" id="statErr">0</div>
+                    <div class="stat-label">Erros</div>
+                </div>
+            </div>
 
-        <div id="progressArea" class="hidden">
-            <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
-            <div id="progressText" class="text-center text-small">Preparando...</div>
-        </div>
+            <div id="progressSection">
+                <div class="progress-wrap">
+                    <div class="progress-bar" id="progressBar"></div>
+                    <div class="progress-text" id="progressText">0%</div>
+                </div>
+                <div class="status-text" id="statusText">Preparando ambiente...</div>
+                <div class="mini-log" id="miniLog">> Aguardando...</div>
+            </div>
 
-        <div id="logArea" class="log-area"></div>
-
-        <div id="actionsArea" class="hidden flex flex-center mt-15">
-            <button class="btn btn-gold" id="btnProcess" onclick="processarTudo()">⚡ Processar e dividir</button>
-            <button class="btn btn-outline" onclick="limparTudo()">🔄 Limpar</button>
+            <div id="doneSection" class="hidden mt-20">
+                <p class="text-center" style="color:var(--gray); margin-bottom:25px;" id="doneMessage"></p>
+                <div class="flex-center">
+                    <button class="btn btn-gold" id="btnRestart">🔄 Novo Processamento</button>
+                    <button class="btn btn-outline" id="btnViewReport">📊 Ver Relatório</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="card" id="resultCard" style="display:none;">
-        <h3 style="margin:0 0 15px; font-weight:800;">📊 Relatório</h3>
-        <div id="resultStats" class="flex flex-center" style="margin-bottom:15px;"></div>
-        <div id="resultTable"></div>
-        <div id="resultFooter" class="mt-15"></div>
+    <!-- MODAL RELATORIO -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Relatório Detalhado</h3>
+                <button class="modal-close" id="btnCloseModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <table class="report-table" id="reportTable">
+                    <thead>
+                        <tr><th>Arquivo</th><th>CNJ</th><th>Páginas Iniciais</th><th>Flags</th><th>Status</th></tr>
+                    </thead>
+                    <tbody id="reportTbody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
-
-    <p class="text-center text-small" style="margin-top:10px;color:rgba(255,255,255,0.6);">
-        Funciona 100% offline · Os arquivos não saem do seu computador
-    </p>
-</div>
 
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-// ============================================================
 // ALGORITHM v7
 // ============================================================
 
@@ -495,67 +609,107 @@ async function detectInicialRange(pdfBytes) {
 }
 
 // ============================================================
-// UI
+// ============================================================
+// UI DASHBOARD CONTROLLER
 // ============================================================
 
 let filesToProcess = [];
+let reportData = [];
 
+// Elementos
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
-const fileList = document.getElementById('fileList');
-const progressArea = document.getElementById('progressArea');
+const fileBadge = document.getElementById('fileBadge');
+const actionUpload = document.getElementById('actionUpload');
+const btnProcess = document.getElementById('btnProcess');
+const btnClear = document.getElementById('btnClear');
+
+const stepUpload = document.getElementById('stepUpload');
+const stepDashboard = document.getElementById('stepDashboard');
+
+const dashTitle = document.getElementById('dashTitle');
+const statTotal = document.getElementById('statTotal');
+const statOk = document.getElementById('statOk');
+const statReview = document.getElementById('statReview');
+const statErr = document.getElementById('statErr');
+
+const progressSection = document.getElementById('progressSection');
 const progressBar = document.getElementById('progressBar');
 const progressText = document.getElementById('progressText');
-const actionsArea = document.getElementById('actionsArea');
-const btnProcess = document.getElementById('btnProcess');
-const logArea = document.getElementById('logArea');
-const resultCard = document.getElementById('resultCard');
-const resultStats = document.getElementById('resultStats');
-const resultTable = document.getElementById('resultTable');
-const resultFooter = document.getElementById('resultFooter');
+const statusText = document.getElementById('statusText');
+const miniLog = document.getElementById('miniLog');
 
+const doneSection = document.getElementById('doneSection');
+const doneMessage = document.getElementById('doneMessage');
+const btnRestart = document.getElementById('btnRestart');
+const btnViewReport = document.getElementById('btnViewReport');
+
+const modalOverlay = document.getElementById('modalOverlay');
+const btnCloseModal = document.getElementById('btnCloseModal');
+const reportTbody = document.getElementById('reportTbody');
+
+// Eventos
 dropZone.addEventListener('click', () => fileInput.click());
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
 dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); handleFiles(Array.from(e.dataTransfer.files)); });
 fileInput.addEventListener('change', () => handleFiles(Array.from(fileInput.files)));
+btnClear.addEventListener('click', limparTudo);
+btnRestart.addEventListener('click', limparTudo);
+btnProcess.addEventListener('click', processarTudo);
+btnViewReport.addEventListener('click', () => modalOverlay.classList.add('active'));
+btnCloseModal.addEventListener('click', () => modalOverlay.classList.remove('active'));
+modalOverlay.addEventListener('click', e => { if(e.target === modalOverlay) modalOverlay.classList.remove('active'); });
 
 function handleFiles(files) {
     const pdfs = files.filter(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
-    if (pdfs.length === 0) { alert('Nenhum PDF.'); return; }
+    if (pdfs.length === 0) { alert('Nenhum PDF válido selecionado.'); return; }
+    
     const integrais = pdfs.filter(f => {
         if (f.name.startsWith('Inicial') || f.name.startsWith('Docs')) return false;
         return f.name.match(/(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/);
     });
-    if (integrais.length === 0) { alert('Nenhum PDF Integral encontrado. O nome deve conter o CNJ.'); return; }
+    
+    if (integrais.length === 0) { 
+        alert('Nenhum PDF Integral encontrado. Certifique-se de que o nome contém o número CNJ.'); 
+        return; 
+    }
 
     filesToProcess = integrais;
-    hide(resultCard);
-    show(fileList);
-    show(actionsArea);
-    hide(progressArea);
-    logArea.innerHTML = ''; hide(logArea);
-
-    fileList.innerHTML = filesToProcess.map((f,i) => `
-        <div class="flex flex-between" style="padding:8px 0;border-bottom:1px solid #eee;">
-            <span>📄 ${f.name}</span>
-            <span class="status-pending" id="status-${i}">⏳ Aguardando</span>
-        </div>
-    `).join('');
-    btnProcess.disabled = false;
+    fileBadge.textContent = `${filesToProcess.length} arquivo(s) na fila`;
+    fileBadge.classList.remove('hidden');
+    actionUpload.classList.remove('hidden');
 }
 
 function limparTudo() {
-    filesToProcess = []; hide(fileList); hide(progressArea); hide(actionsArea); hide(resultCard); hide(logArea);
-    fileInput.value = ''; btnProcess.disabled = false;
+    filesToProcess = [];
+    reportData = [];
+    fileInput.value = '';
+    fileBadge.classList.add('hidden');
+    actionUpload.classList.add('hidden');
+    
+    stepUpload.classList.remove('hidden');
+    stepDashboard.classList.add('hidden');
+    doneSection.classList.add('hidden');
+    progressSection.classList.remove('hidden');
+    
+    statTotal.textContent = '0';
+    statOk.textContent = '0';
+    statReview.textContent = '0';
+    statErr.textContent = '0';
+    progressBar.style.width = '0%';
+    progressText.textContent = '0%';
 }
 
-function show(el) { el.classList.remove('hidden'); el.style.display = ''; }
-function hide(el) { el.classList.add('hidden'); el.style.display = 'none'; }
+function log(msg) { 
+    miniLog.textContent = `> ${msg}`;
+    console.log(msg); 
+}
 
-function log(msg) { logArea.style.display = 'block'; logArea.innerHTML += msg + '\n'; logArea.scrollTop = logArea.scrollHeight; }
-
-function cnjFromName(n) { const m = n.match(/(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/); return m ? m[1] : null; }
+function cnjFromName(n) { 
+    const m = n.match(/(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/); 
+    return m ? m[1] : null; 
+}
 
 async function splitSavePDF(file, start, end, destDir, nomeBase) {
     const buf = await file.arrayBuffer();
@@ -587,121 +741,115 @@ async function salvar(dir, nome, bytes) {
 }
 
 async function processarTudo() {
-    // Pedir pasta de destino
     let destDir;
     try {
         destDir = await window.showDirectoryPicker({ mode: 'readwrite' });
     } catch {
-        alert('É necessário selecionar uma pasta de destino para salvar os PDFs divididos.');
+        alert('É necessário selecionar uma pasta de destino para salvar os PDFs.');
         return;
     }
 
-    btnProcess.disabled = true;
-    show(progressArea);
-    hide(resultCard);
-    logArea.innerHTML = ''; show(logArea);
-    log(`📂 Pasta de destino: ${destDir.name}`);
-
+    // Prepara UI
+    stepUpload.classList.add('hidden');
+    stepDashboard.classList.remove('hidden');
+    dashTitle.textContent = 'Processando...';
+    
     const total = filesToProcess.length;
-    const report = [];
+    statTotal.textContent = total;
+    let counts = { ok: 0, review: 0, err: 0 };
+    reportData = [];
+
+    log(`Destino selecionado: ${destDir.name}`);
 
     for (let i = 0; i < total; i++) {
         const f = filesToProcess[i];
-        const statusEl = document.getElementById(`status-${i}`);
-        statusEl.textContent = '🔍 Lendo...';
-
-        progressBar.style.width = `${((i) / total) * 100}%`;
-        progressText.textContent = `Processando ${i + 1}/${total}: ${f.name}`;
+        const pct = Math.round((i / total) * 100);
+        progressBar.style.width = `${pct}%`;
+        progressText.textContent = `${pct}%`;
+        statusText.textContent = `Analisando ${i + 1} de ${total}: ${f.name}`;
 
         try {
+            log(`Lendo bytes de ${f.name}...`);
             const buf = await f.arrayBuffer();
             const bytes = new Uint8Array(buf);
             const cnj = cnjFromName(f.name);
 
-
-            log(`📖 ${f.name}`);
-            statusEl.textContent = '🔍 Detectando...';
-
+            log(`Detectando limites...`);
             const range = await detectInicialRange(bytes);
+            
             if (range.error || !range.start) {
-                throw new Error(range.error || 'Não detectou');
+                throw new Error(range.error || 'Falha na detecção');
             }
 
-            log(`   Páginas ${range.start}-${range.end} (${range.end-range.start+1}p) | conf=${range.confidence}/5`);
-            statusEl.textContent = '✂️ Dividindo...';
-
-            const nomeBase = cnj;
-            await splitSavePDF(f, range.start, range.end, destDir, nomeBase);
+            log(`Separando PDF (${range.start} a ${range.end})...`);
+            await splitSavePDF(f, range.start, range.end, destDir, cnj);
 
             const needsReview = range.flags.includes('review');
-            log(`   ✅ Salvo`);
+            if (needsReview) counts.review++; else counts.ok++;
 
-            statusEl.textContent = needsReview ? '👁️ Revisar' : '✅ OK';
-            statusEl.style.color = needsReview ? '#fd7e14' : '#28a745';
+            reportData.push({ 
+                file: f.name, cnj, start: range.start, end: range.end, 
+                pages: range.end - range.start + 1, flags: range.flags, needsReview 
+            });
 
-            report.push({ file: f.name, cnj, start: range.start, end: range.end, pages: range.end - range.start + 1, confidence: range.confidence, flags: range.flags, needsReview });
-
+            log(`Salvo com sucesso.`);
         } catch (e) {
-            log(`   ❌ ${e.message}`);
-            statusEl.textContent = '❌ Erro';
-            statusEl.style.color = '#dc3545';
-            report.push({ file: f.name, cnj: cnjFromName(f.name), error: e.message, needsReview: false });
+            log(`ERRO: ${e.message}`);
+            counts.err++;
+            reportData.push({ file: f.name, cnj: cnjFromName(f.name), error: e.message, needsReview: false });
         }
+
+        // Atualiza stats em realtime
+        statOk.textContent = counts.ok;
+        statReview.textContent = counts.review;
+        statErr.textContent = counts.err;
     }
 
+    // Finalização
     progressBar.style.width = '100%';
-    progressText.textContent = '✅ Processamento concluído!';
-
-    // RELATÓRIO
-    show(resultCard);
-
-    const totalOk = report.filter(r => !r.error).length;
-    const totalReview = report.filter(r => r.needsReview).length;
-    const totalErr = report.filter(r => r.error).length;
-
-    resultStats.innerHTML = `
-        <div class="stat-card"><div class="value">${total}</div><div class="label">Total</div></div>
-        <div class="stat-card"><div class="value" style="color:#28a745">${totalOk}</div><div class="label">OK</div></div>
-        <div class="stat-card"><div class="value" style="color:#fd7e14">${totalReview}</div><div class="label">Revisar</div></div>
-        <div class="stat-card"><div class="value" style="color:#dc3545">${totalErr}</div><div class="label">Erro</div></div>
-    `;
-
-    function acuracia(score) {
-        const mapa = {5:98, 4:85, 3:65, 2:40, 1:20, 0:5};
-        return mapa[score] || 0;
-    }
-
-    let tableHtml = `<table class="report-table">
-        <tr><th>Arquivo</th><th>CNJ</th><th>Páginas</th><th>Acurácia</th><th>Flags</th><th>Status</th></tr>`;
-
-    for (const r of report) {
-        if (r.error) {
-            tableHtml += `<tr><td>❌ ${r.file}</td><td>${r.cnj || '?'}</td><td>-</td><td>-</td><td>-</td><td><span class="badge badge-red">Erro: ${r.error}</span></td></tr>`;
-            continue;
+    progressText.textContent = '100%';
+    statusText.textContent = 'Processamento concluído!';
+    dashTitle.textContent = '✅ Finalizado';
+    
+    setTimeout(() => {
+        progressSection.classList.add('hidden');
+        doneSection.classList.remove('hidden');
+        
+        let msg = `Todos os arquivos foram salvos na pasta <strong>${destDir.name}</strong>.`;
+        if (counts.review > 0) {
+            msg += `<br><span style="color:var(--warning)">Atenção: ${counts.review} arquivo(s) precisam de revisão manual.</span>`;
         }
-        const confClass = r.confidence >= 4 ? 'conf-high' : r.confidence >= 3 ? 'conf-medium' : 'conf-low';
-        const statusBadge = r.needsReview
-            ? '<span class="badge badge-review">👁️ Revisar</span>'
-            : '<span class="badge badge-green">✅ OK</span>';
-        tableHtml += `<tr>
-            <td>📄 ${r.file}</td>
-            <td style="font-size:0.75rem;">${r.cnj}</td>
-            <td>${r.start}-${r.end} (${r.pages}p)</td>
-            <td><span class="conf-bar ${confClass}"><span class="conf-fill"></span></span> ${acuracia(r.confidence)}%</td>
-            <td>${r.flags.filter(f => f !== 'review').join(' ')}</td>
-            <td>${statusBadge}</td>
-        </tr>`;
-    }
-    tableHtml += '</table>';
-    resultTable.innerHTML = tableHtml;
+        doneMessage.innerHTML = msg;
+        renderReport();
+    }, 800);
+}
 
-    if (totalReview > 0) {
-        resultFooter.innerHTML = `<p style="color:#fd7e14">👁️ <strong>${totalReview}</strong> arquivo(s) marcados para revisão. Verifique os PDFs gerados na pasta "${destDir.name}" e confira se estão corretos. Os casos comuns que geram alerta: <span class="badge badge-yellow">PROCON</span> <span class="badge badge-yellow">TERMO2</span> <span class="badge badge-yellow">very_short</span></p>`;
-    } else {
-        resultFooter.innerHTML = `<p style="color:#28a745">✅ Todos os arquivos foram processados com alta confiança e salvos em "${destDir.name}".</p>`;
+function renderReport() {
+    let html = '';
+    for (const r of reportData) {
+        if (r.error) {
+            html += `<tr>
+                <td>📄 ${r.file}</td>
+                <td>${r.cnj || '-'}</td>
+                <td>-</td>
+                <td>-</td>
+                <td><span class="badge badge-red">Erro: ${r.error}</span></td>
+            </tr>`;
+        } else {
+            const badge = r.needsReview 
+                ? '<span class="badge badge-yellow">👁️ Revisar</span>' 
+                : '<span class="badge badge-green">✅ OK</span>';
+            const flags = r.flags.filter(f => f !== 'review').join(', ') || '-';
+            html += `<tr>
+                <td>📄 ${r.file}</td>
+                <td style="font-family:monospace">${r.cnj}</td>
+                <td>${r.start} a ${r.end} (${r.pages}p)</td>
+                <td>${flags}</td>
+                <td>${badge}</td>
+            </tr>`;
+        }
     }
-
-    btnProcess.disabled = false;
+    reportTbody.innerHTML = html;
 }
 </script>
 </body>
