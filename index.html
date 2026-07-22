@@ -319,10 +319,10 @@ body {
                 
                 <!-- Visão Controlada (Para Captura de Página) -->
                 <div id="customViewer" style="width:100%; height:100%; display:none; flex-direction:column; background:#525659; overflow-y:auto; align-items:center;">
-                    <div style="position:sticky; top:0; background:#323639; width:100%; padding:10px; display:flex; justify-content:center; gap:15px; color:white; z-index:10; box-shadow:0 2px 5px rgba(0,0,0,0.5);">
-                        <button class="btn-tiny" id="btnPrevPage">◀ Anterior</button>
-                        <span style="font-size:0.9rem;">Pág <input type="number" id="inpCurrentPage" style="width:60px; text-align:center; padding:4px; border-radius:4px; border:none;"> de <span id="lblTotalPages"></span></span>
-                        <button class="btn-tiny" id="btnNextPage">Próxima ▶</button>
+                    <div style="position:sticky; top:0; background:#323639; width:100%; padding:10px; display:flex; justify-content:center; gap:20px; color:white; z-index:10; box-shadow:0 2px 5px rgba(0,0,0,0.5); align-items:center;">
+                        <span style="font-size:0.95rem; font-weight:bold;">Pág <input type="number" id="inpCurrentPage" style="width:60px; text-align:center; padding:4px; border-radius:4px; border:none; margin:0 5px;" min="1"> de <span id="lblTotalPages"></span></span>
+                        <span style="color:#aaa;">|</span>
+                        <span style="font-size:0.85rem; color:#ccc;">⏬ Role o mouse para trocar de página</span>
                     </div>
                     <canvas id="pdfCanvas" style="margin:20px; box-shadow:0 4px 12px rgba(0,0,0,0.4); max-width:95%;"></canvas>
                 </div>
@@ -707,6 +707,7 @@ let currentPdfUrl = null;
 let currentManualFile = null;
 let currentDoc = null;
 let currentPageNum = 1;
+let isRenderingPage = false;
 
 // Elementos
 const dropZone = document.getElementById('dropZone');
@@ -768,8 +769,29 @@ btnClosePdfModal.addEventListener('click', closePdfModal);
 pdfModal.addEventListener('click', e => { if(e.target === pdfModal) closePdfModal(); });
 
 // Controles do Visualizador Customizado
-document.getElementById('btnPrevPage').addEventListener('click', () => { if (currentPageNum > 1) renderPage(currentPageNum - 1); });
-document.getElementById('btnNextPage').addEventListener('click', () => { if (currentDoc && currentPageNum < currentDoc.numPages) renderPage(currentPageNum + 1); });
+const customViewer = document.getElementById('customViewer');
+
+customViewer.addEventListener('wheel', async (e) => {
+    if (isRenderingPage || !currentDoc) return;
+    
+    const atTop = customViewer.scrollTop <= 10;
+    const atBottom = Math.ceil(customViewer.scrollTop + customViewer.clientHeight) >= customViewer.scrollHeight - 10;
+    
+    if (e.deltaY > 0) { 
+        if (atBottom && currentPageNum < currentDoc.numPages) {
+            e.preventDefault();
+            await renderPage(currentPageNum + 1);
+            customViewer.scrollTop = 0;
+        }
+    } else if (e.deltaY < 0) {
+        if (atTop && currentPageNum > 1) {
+            e.preventDefault();
+            await renderPage(currentPageNum - 1);
+            customViewer.scrollTop = customViewer.scrollHeight; 
+        }
+    }
+});
+
 document.getElementById('inpCurrentPage').addEventListener('change', (e) => {
     let val = parseInt(e.target.value);
     if (currentDoc && val >= 1 && val <= currentDoc.numPages) renderPage(val);
@@ -778,17 +800,22 @@ document.getElementById('btnMarkStart').addEventListener('click', () => { docume
 document.getElementById('btnMarkEnd').addEventListener('click', () => { document.getElementById('manualEnd').value = currentPageNum; });
 
 async function renderPage(num) {
-    if (!currentDoc) return;
-    const page = await currentDoc.getPage(num);
-    const viewport = page.getViewport({ scale: 1.5 });
-    const canvas = document.getElementById('pdfCanvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-    
-    document.getElementById('inpCurrentPage').value = num;
-    currentPageNum = num;
+    if (!currentDoc || isRenderingPage) return;
+    isRenderingPage = true;
+    try {
+        const page = await currentDoc.getPage(num);
+        const viewport = page.getViewport({ scale: 1.5 });
+        const canvas = document.getElementById('pdfCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+        
+        document.getElementById('inpCurrentPage').value = num;
+        currentPageNum = num;
+    } finally {
+        isRenderingPage = false;
+    }
 }
 
 function closePdfModal() {
