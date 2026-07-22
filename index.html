@@ -320,6 +320,13 @@ body {
                 <!-- Visão Controlada (Para Captura de Página) -->
                 <div id="customViewer" style="width:100%; height:100%; display:none; flex-direction:column; background:#525659; overflow-y:auto; align-items:center;">
                     <div style="position:sticky; top:0; background:#323639; width:100%; padding:10px; display:flex; justify-content:center; gap:20px; color:white; z-index:10; box-shadow:0 2px 5px rgba(0,0,0,0.5); align-items:center;">
+                        
+                        <div style="display:flex; align-items:center; gap:5px; background:#202224; padding:4px 8px; border-radius:6px;">
+                            <button class="btn-tiny" style="border:none; background:transparent; color:#fff;" id="btnZoomOut">➖</button>
+                            <button class="btn-tiny" style="border:none; background:transparent; color:#fff; width:45px;" id="btnZoomFit" title="Ajustar à Tela">Fit</button>
+                            <button class="btn-tiny" style="border:none; background:transparent; color:#fff;" id="btnZoomIn">➕</button>
+                        </div>
+
                         <span style="font-size:0.95rem; font-weight:bold;">Pág <input type="number" id="inpCurrentPage" style="width:60px; text-align:center; padding:4px; border-radius:4px; border:none; margin:0 5px;" min="1"> de <span id="lblTotalPages"></span></span>
                         <span style="color:#aaa;">|</span>
                         <span style="font-size:0.85rem; color:#ccc;">⏬ Role o mouse para trocar de página</span>
@@ -708,6 +715,7 @@ let currentManualFile = null;
 let currentDoc = null;
 let currentPageNum = 1;
 let isRenderingPage = false;
+let customScale = null;
 
 // Elementos
 const dropZone = document.getElementById('dropZone');
@@ -799,12 +807,47 @@ document.getElementById('inpCurrentPage').addEventListener('change', (e) => {
 document.getElementById('btnMarkStart').addEventListener('click', () => { document.getElementById('manualStart').value = currentPageNum; });
 document.getElementById('btnMarkEnd').addEventListener('click', () => { document.getElementById('manualEnd').value = currentPageNum; });
 
+document.getElementById('btnZoomIn').addEventListener('click', () => {
+    if (!customScale) customScale = getFitScale();
+    customScale += 0.2;
+    renderPage(currentPageNum);
+});
+document.getElementById('btnZoomOut').addEventListener('click', () => {
+    if (!customScale) customScale = getFitScale();
+    customScale = Math.max(0.4, customScale - 0.2);
+    renderPage(currentPageNum);
+});
+document.getElementById('btnZoomFit').addEventListener('click', () => {
+    customScale = null;
+    renderPage(currentPageNum);
+});
+
+let unscaledViewport = null;
+function getFitScale() {
+    if (!unscaledViewport) return 1.0;
+    const cw = customViewer.clientWidth - 40;
+    const ch = customViewer.clientHeight - 80;
+    const scaleW = cw / unscaledViewport.width;
+    const scaleH = ch / unscaledViewport.height;
+    return Math.min(scaleW, scaleH);
+}
+
 async function renderPage(num) {
     if (!currentDoc || isRenderingPage) return;
     isRenderingPage = true;
     try {
         const page = await currentDoc.getPage(num);
-        const viewport = page.getViewport({ scale: 1.5 });
+        unscaledViewport = page.getViewport({ scale: 1.0 });
+        
+        let scale = customScale;
+        if (!scale) {
+            scale = getFitScale();
+            document.getElementById('btnZoomFit').textContent = "Fit";
+        } else {
+            document.getElementById('btnZoomFit').textContent = Math.round(scale * 100) + "%";
+        }
+
+        const viewport = page.getViewport({ scale: scale });
         const canvas = document.getElementById('pdfCanvas');
         const ctx = canvas.getContext('2d');
         canvas.width = viewport.width;
@@ -1104,6 +1147,7 @@ async function openManualSplit(cnj) {
     if (!fileObj) { alert("Arquivo original não encontrado na memória."); return; }
     
     currentManualFile = fileObj;
+    customScale = null;
     
     document.getElementById('manualSplitControls').classList.remove('hidden');
     document.getElementById('pdfViewer').style.display = 'none';
