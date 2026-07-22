@@ -300,6 +300,13 @@ body {
         <div class="modal-content" style="width: 95%; height: 95%; max-width: 1400px; max-height: 95vh;">
             <div class="modal-header">
                 <h3 class="modal-title" id="pdfModalTitle">Visualizador</h3>
+                
+                <div id="manualSplitControls" class="hidden flex-center">
+                    <label style="font-size:0.85rem; font-weight:700;">Início: <input type="number" id="manualStart" style="width:60px; padding:4px; border:1px solid #ccc; border-radius:4px; text-align:center;" min="1"></label>
+                    <label style="font-size:0.85rem; font-weight:700;">Fim: <input type="number" id="manualEnd" style="width:60px; padding:4px; border:1px solid #ccc; border-radius:4px; text-align:center;" min="1"></label>
+                    <button class="btn-tiny" style="background:var(--gold); border-color:var(--dark-gold); font-size:0.85rem; padding:6px 12px;" id="btnManualSplit">✂️ Dividir</button>
+                </div>
+
                 <button class="modal-close" id="btnClosePdfModal">&times;</button>
             </div>
             <div class="modal-body" style="padding:0; overflow:hidden;">
@@ -682,6 +689,8 @@ let reportData = [];
 let globalDestDir = null;
 let currentPdfUrl = null;
 
+let currentManualFile = null;
+
 // Elementos
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
@@ -984,11 +993,12 @@ function renderReport() {
             const btnIni = `<button class="btn-tiny" onclick="viewPdf('Inicial', '${r.cnj}')">👁️ Inicial</button>`;
             const hasDocs = (r.start > 1 || r.end < r.total);
             const btnDocs = hasDocs ? `<button class="btn-tiny" onclick="viewPdf('Docs', '${r.cnj}')">👁️ Docs</button>` : '';
+            const btnCorrigir = `<button class="btn-tiny" style="background:#fff3cd; border-color:#ffecb5;" onclick="openManualSplit('${r.cnj}')">✏️ Corrigir</button>`;
 
             html += `<tr>
                 <td>📄 ${r.file}</td>
                 <td>${r.start} a ${r.end} (${r.pages}p)</td>
-                <td>${btnIni} ${btnDocs}</td>
+                <td>${btnIni} ${btnDocs} ${btnCorrigir}</td>
                 <td>${badge}</td>
             </tr>`;
         }
@@ -999,6 +1009,8 @@ function renderReport() {
 async function viewPdf(type, cnj) {
     if (!globalDestDir) return;
     try {
+        document.getElementById('manualSplitControls').classList.add('hidden');
+        
         const fileName = `${type}_${cnj}.pdf`;
         const handle = await globalDestDir.getFileHandle(fileName);
         const file = await handle.getFile();
@@ -1013,6 +1025,69 @@ async function viewPdf(type, cnj) {
         alert("Não foi possível carregar o PDF gerado: " + e.message);
     }
 }
+
+async function openManualSplit(cnj) {
+    if (!globalDestDir) return;
+    
+    const fileObj = filesToProcess.find(f => cnjFromName(f.name) === cnj);
+    if (!fileObj) { alert("Arquivo original não encontrado na memória."); return; }
+    
+    currentManualFile = fileObj;
+    
+    document.getElementById('manualSplitControls').classList.remove('hidden');
+    pdfModalTitle.textContent = "✏️ " + fileObj.name;
+    
+    const r = reportData.find(x => x.cnj === cnj);
+    if (r) {
+        document.getElementById('manualStart').value = r.start || 1;
+        document.getElementById('manualEnd').value = r.end || r.total || 1;
+    }
+    
+    if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
+    currentPdfUrl = URL.createObjectURL(fileObj);
+    pdfViewer.src = currentPdfUrl;
+    pdfModal.classList.add('active');
+}
+
+document.getElementById('btnManualSplit').addEventListener('click', async () => {
+    if (!currentManualFile || !globalDestDir) return;
+    
+    const start = parseInt(document.getElementById('manualStart').value);
+    const end = parseInt(document.getElementById('manualEnd').value);
+    const cnj = cnjFromName(currentManualFile.name);
+    
+    if (isNaN(start) || isNaN(end) || start < 1 || end < start) {
+        alert("Intervalo de páginas inválido.");
+        return;
+    }
+    
+    const btn = document.getElementById('btnManualSplit');
+    btn.disabled = true;
+    btn.textContent = "⏳ Cortando...";
+    
+    try {
+        await splitSavePDF(currentManualFile, start, end, globalDestDir, cnj);
+        
+        const r = reportData.find(x => x.cnj === cnj);
+        if (r) {
+            r.start = start;
+            r.end = end;
+            r.pages = end - start + 1;
+            r.flags = ['Manual'];
+            r.needsReview = false;
+            r.error = null;
+        }
+        renderReport();
+        
+        alert("Divisão manual concluída e sobrescrita com sucesso!");
+        closePdfModal();
+    } catch(e) {
+        alert("Erro na divisão: " + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "✂️ Dividir";
+    }
+});
 </script>
 </body>
 </html>
