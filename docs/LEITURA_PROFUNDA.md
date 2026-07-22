@@ -65,6 +65,11 @@ Este é o "Algorithm v7" que opera em **três fases sequenciais**:
 - Procura nas primeiras 20 páginas por marcadores específicos.
 - **Heurística:** vai página a página a partir do início até encontrar nova numeração de documento ou novo doc por conteúdo.
 
+#### FASE 0.5 — OCR de Emergência (Para processos Escaneados/Atermações)
+- Se após varrer o PDF as primeiras páginas contiverem pouquíssimo texto extraído, o sistema deduz tratar-se de um PDF-imagem (como atermações e petições físicas escaneadas).
+- Dispara-se o `Tesseract.js` via CDN: o app renderiza a página em um elemento `<canvas>` invisível e realiza a Leitura Óptica (OCR).
+- O processo avança página a página, minimizando o impacto na memória (e só é ativado em caso de falha completa de leitura textual nativa).
+
 #### FASE 1 — Detecção do INÍCIO da petição
 - Se não é PROCON:
   1. **Pattern matching:** itera páginas pulando as de sistema, testa cada `START_PATTERNS`.

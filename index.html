@@ -130,6 +130,7 @@ body {
 
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
@@ -286,7 +287,58 @@ async function detectInicialRange(pdfBytes) {
                 }
             }
         }
-        if (!startPage) return { start: null, end: null, error: 'Não detectou início' };
+
+        // FASE 0.5: OCR de Emergência
+        if (!startPage && pagesText.slice(0, 10).join('').trim().length < 500) {
+            flags.push('OCR');
+            if (typeof log === 'function') log("   [!] Imagem sem texto detectada. Iniciando OCR de emergência...");
+            
+            const worker = await Tesseract.createWorker('por');
+            for (let i = 1; i <= Math.min(10, totalPages); i++) {
+                const page = await doc.getPage(i);
+                const viewport = page.getViewport({ scale: 1.5 });
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                const ctx = canvas.getContext('2d');
+                await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+                
+                if (typeof log === 'function') log(`   > Lendo pág ${i} com OCR...`);
+                const { data: { text } } = await worker.recognize(canvas);
+                pagesText[i-1] = text;
+                
+                for (const pat of START_PATTERNS) {
+                    if (pat.test(text)) { startPage = i; startMethod = 'ocr_pattern'; break; }
+                }
+                if (startPage) break;
+            }
+
+            if (startPage) {
+                for (let i = startPage; i < totalPages; i++) {
+                    if (pagesText[i] && pagesText[i].trim().length > 50) continue;
+                    
+                    const page = await doc.getPage(i + 1);
+                    const viewport = page.getViewport({ scale: 1.5 });
+                    const canvas = document.createElement('canvas');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    const ctx = canvas.getContext('2d');
+                    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+                    if (typeof log === 'function') log(`   > Lendo pág ${i+1} com OCR...`);
+                    const { data: { text } } = await worker.recognize(canvas);
+                    pagesText[i] = text;
+
+                    const last20 = text.split('\n').slice(-20).join('\n');
+                    const hasC = isRealClosing(last20);
+                    const hasO = /OAB[/-]/.test(last20) || /OAB\s*(?:n[º°]\s*)?\d/.test(last20) || /Defensor(?:ia|a|e)?\s+Públic[ao]/i.test(last20);
+                    if (hasC && hasO) break;
+                }
+            }
+            await worker.terminate();
+        }
+
+        if (!startPage) return { start: null, end: null, error: 'Não detectou início (mesmo com OCR)' };
 
         // Refinamento: candidato alternativo se o primeiro for muito curto
         let firstEnd = null;
