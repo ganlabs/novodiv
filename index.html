@@ -302,15 +302,30 @@ body {
                 <h3 class="modal-title" id="pdfModalTitle">Visualizador</h3>
                 
                 <div id="manualSplitControls" class="hidden flex-center">
+                    <button class="btn-tiny" style="background:#e9ecef;" id="btnMarkStart">📍 Marcar Início</button>
                     <label style="font-size:0.85rem; font-weight:700;">Início: <input type="number" id="manualStart" style="width:60px; padding:4px; border:1px solid #ccc; border-radius:4px; text-align:center;" min="1"></label>
+                    
+                    <button class="btn-tiny" style="background:#e9ecef; margin-left:15px;" id="btnMarkEnd">📍 Marcar Fim</button>
                     <label style="font-size:0.85rem; font-weight:700;">Fim: <input type="number" id="manualEnd" style="width:60px; padding:4px; border:1px solid #ccc; border-radius:4px; text-align:center;" min="1"></label>
-                    <button class="btn-tiny" style="background:var(--gold); border-color:var(--dark-gold); font-size:0.85rem; padding:6px 12px;" id="btnManualSplit">✂️ Dividir</button>
+                    
+                    <button class="btn-tiny" style="background:var(--gold); border-color:var(--dark-gold); font-size:0.85rem; padding:6px 12px; margin-left:15px;" id="btnManualSplit">✂️ Dividir</button>
                 </div>
 
                 <button class="modal-close" id="btnClosePdfModal">&times;</button>
             </div>
-            <div class="modal-body" style="padding:0; overflow:hidden;">
-                <iframe id="pdfViewer" style="width:100%; height:100%; border:none;" src=""></iframe>
+            <div class="modal-body" style="padding:0; overflow:hidden; position:relative;">
+                <!-- Visão Nativa Fluida -->
+                <iframe id="pdfViewer" style="width:100%; height:100%; border:none; display:none;" src=""></iframe>
+                
+                <!-- Visão Controlada (Para Captura de Página) -->
+                <div id="customViewer" style="width:100%; height:100%; display:none; flex-direction:column; background:#525659; overflow-y:auto; align-items:center;">
+                    <div style="position:sticky; top:0; background:#323639; width:100%; padding:10px; display:flex; justify-content:center; gap:15px; color:white; z-index:10; box-shadow:0 2px 5px rgba(0,0,0,0.5);">
+                        <button class="btn-tiny" id="btnPrevPage">◀ Anterior</button>
+                        <span style="font-size:0.9rem;">Pág <input type="number" id="inpCurrentPage" style="width:60px; text-align:center; padding:4px; border-radius:4px; border:none;"> de <span id="lblTotalPages"></span></span>
+                        <button class="btn-tiny" id="btnNextPage">Próxima ▶</button>
+                    </div>
+                    <canvas id="pdfCanvas" style="margin:20px; box-shadow:0 4px 12px rgba(0,0,0,0.4); max-width:95%;"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -752,9 +767,34 @@ modalOverlay.addEventListener('click', e => { if(e.target === modalOverlay) moda
 btnClosePdfModal.addEventListener('click', closePdfModal);
 pdfModal.addEventListener('click', e => { if(e.target === pdfModal) closePdfModal(); });
 
+// Controles do Visualizador Customizado
+document.getElementById('btnPrevPage').addEventListener('click', () => { if (currentPageNum > 1) renderPage(currentPageNum - 1); });
+document.getElementById('btnNextPage').addEventListener('click', () => { if (currentDoc && currentPageNum < currentDoc.numPages) renderPage(currentPageNum + 1); });
+document.getElementById('inpCurrentPage').addEventListener('change', (e) => {
+    let val = parseInt(e.target.value);
+    if (currentDoc && val >= 1 && val <= currentDoc.numPages) renderPage(val);
+});
+document.getElementById('btnMarkStart').addEventListener('click', () => { document.getElementById('manualStart').value = currentPageNum; });
+document.getElementById('btnMarkEnd').addEventListener('click', () => { document.getElementById('manualEnd').value = currentPageNum; });
+
+async function renderPage(num) {
+    if (!currentDoc) return;
+    const page = await currentDoc.getPage(num);
+    const viewport = page.getViewport({ scale: 1.5 });
+    const canvas = document.getElementById('pdfCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+    
+    document.getElementById('inpCurrentPage').value = num;
+    currentPageNum = num;
+}
+
 function closePdfModal() {
     pdfModal.classList.remove('active');
     pdfViewer.src = '';
+    currentDoc = null;
     if (currentPdfUrl) {
         URL.revokeObjectURL(currentPdfUrl);
         currentPdfUrl = null;
@@ -1012,6 +1052,8 @@ async function viewPdf(type, cnj) {
     if (!globalDestDir) return;
     try {
         document.getElementById('manualSplitControls').classList.add('hidden');
+        document.getElementById('customViewer').style.display = 'none';
+        document.getElementById('pdfViewer').style.display = 'block';
         
         const fileName = `${type}_${cnj}.pdf`;
         const handle = await globalDestDir.getFileHandle(fileName);
@@ -1037,6 +1079,9 @@ async function openManualSplit(cnj) {
     currentManualFile = fileObj;
     
     document.getElementById('manualSplitControls').classList.remove('hidden');
+    document.getElementById('pdfViewer').style.display = 'none';
+    document.getElementById('customViewer').style.display = 'flex';
+    
     pdfModalTitle.textContent = "✏️ " + fileObj.name;
     
     const r = reportData.find(x => x.cnj === cnj);
@@ -1045,10 +1090,18 @@ async function openManualSplit(cnj) {
         document.getElementById('manualEnd').value = r.end || r.total || 1;
     }
     
-    if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
-    currentPdfUrl = URL.createObjectURL(fileObj);
-    pdfViewer.src = currentPdfUrl;
     pdfModal.classList.add('active');
+
+    try {
+        const arrayBuffer = await fileObj.arrayBuffer();
+        currentDoc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+        document.getElementById('lblTotalPages').textContent = currentDoc.numPages;
+        
+        const startToRender = r ? (r.start || 1) : 1;
+        await renderPage(startToRender);
+    } catch(e) {
+        alert("Erro ao abrir PDF para edição visual: " + e.message);
+    }
 }
 
 document.getElementById('btnManualSplit').addEventListener('click', async () => {
