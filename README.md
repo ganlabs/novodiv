@@ -77,9 +77,6 @@ novodiv/
 │   ├── procon/             #    - Amostra de notificações do PROCON
 │   └── teste1/             #    - Amostra de PDFs divididos (saída)
 │
-├── docs/
-│   └── LEITURA_PROFUNDA.md # Análise aprofundada da lógica heurística
-│
 ├── README.md               # Este arquivo
 ├── SPEC.md                 # Especificação técnica e arquitetural
 ├── AGENTS.md               # Diretrizes para agentes de IA e desenvolvedores

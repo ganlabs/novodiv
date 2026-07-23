@@ -11,8 +11,7 @@ App single-file (`index.html`) escrito em **HTML + CSS + JavaScript vanilla** qu
 
 Antes de sugerir mudanças, **leia**:
 - [`README.md`](README.md) — visão geral e uso
-- [`SPEC.md`](SPEC.md) — especificação técnica completa
-- [`docs/LEITURA_PROFUNDA.md`](docs/LEITURA_PROFUNDA.md) — análise do algoritmo v7
+- [`SPEC.md`](SPEC.md) — especificação técnica completa e reconstrução heurística
 
 ---
 
@@ -51,9 +50,6 @@ novodiv/
 │   ├── erros/              #    - PDFs de casos de borda/erro
 │   ├── procon/             #    - Notificações PROCON
 │   └── teste1/             #    - PDFs gerados/divididos
-│
-├── docs/
-│   └── LEITURA_PROFUNDA.md
 │
 ├── README.md
 ├── SPEC.md

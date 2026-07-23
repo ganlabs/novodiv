@@ -130,7 +130,13 @@ O **NovoDiv** é uma solução *client-side* concebida para automatizar a identi
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### 4.2 Regras de Regex e Filtragem
+### 4.2 Reconstrução Espacial de Texto (`pdf.js` Y-Axis)
+
+O `pdf.js` extrai textos em fragmentos de strings. Para evitar quebras falsas de linha em termos como inscrições da OAB (ex: transformando `OAB/RS` em `OAB \n / \n RS` que quebrariam as expressões regulares), o NovoDiv utiliza a coordenada de posição vertical **Y** (`transform[5]`). 
+
+Uma quebra de linha (`\n`) só é inserida quando `Math.abs(lastY - item.transform[5]) > 2`. Isso garante reconstrução fiel dos parágrafos da petição inicial mantendo a integridade de números OAB, fechos e conectivos jurídicos.
+
+### 4.3 Regras de Regex e Filtragem
 
 #### Vocativos de Início (`START_PATTERNS`)
 ```javascript
@@ -162,7 +168,7 @@ Identifica o início de documentos anexos subsequentes através do cabeçalho da
 - Páginas de separação do tribunal / Capa de processo
 - Documentos de identificação (`RG`, `Carteira de Trabalho`, `COMPROVANTE`, `CERTIDÃO`)
 
-### 4.3 Matriz de Confiança e Pontuação
+### 4.4 Matriz de Confiança e Pontuação
 
 ```text
 Pontuação de Início:
