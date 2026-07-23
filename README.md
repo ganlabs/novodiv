@@ -1,115 +1,120 @@
 # NovoDiv
 
-> **Divisor automático de PDFs de Petição Inicial de processos jurídicos brasileiros.**
+> **Divisor automático e inteligente de PDFs de Petições Iniciais para processos jurídicos brasileiros.**
 
-[![Status](https://img.shields.io/badge/status-MVP-yellow)]()
+[![Status](https://img.shields.io/badge/status-Est%C3%A1vel_v7-brightgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-green)]()
-[![Offline](https://img.shields.io/badge/100%25-offline-blue)]()
+[![Offline](https://img.shields.io/badge/100%25-Client--Side-blue)]()
+[![Privacy](https://img.shields.io/badge/LGPD-100%25_Local-orange)]()
 
-NovoDiv recebe PDFs **integrais** de processos (PJe, Projudi, eProc, PROCON) e separa automaticamente a **Petição Inicial** do restante do processo, gerando dois arquivos:
+O **NovoDiv** é um aplicativo web *single-file* de alta performance que processa PDFs **integrais** de processos judiciais e administrativos brasileiros (PJe, Projudi, eProc, PROCON), identificando e separando automaticamente a **Petição Inicial** do restante dos documentos.
 
-- `Inicial_{CNJ}.pdf` — só a petição inicial
-- `Docs_{CNJ}.pdf` — o resto do processo (antes + depois)
-
-Os arquivos **nunca saem do seu computador** — tudo roda no navegador, sem backend, sem upload, sem OCR.
-
----
-
-## ✨ Funcionalidades
-
-- 📥 **Drag & drop** ou seleção de múltiplos PDFs integrais
-- 🔍 **Detecção automática** do intervalo de páginas da Petição Inicial
-- 🏛️ **Suporte multi-sistema:** PJe · Projudi · eProc · PROCON Estadual
-- ✂️ **Split nativo** via `pdf-lib` (sem perda de qualidade)
-- 📊 **Relatório de revisão** com score de confiança (0-100%) e flag `👁️ Revisar` automática
-- 🖥️ **Sem instalação** — abre direto no navegador
-- 🌐 **Funciona offline** (com fallback para CDN se primeira vez sem internet)
+Gera diretamente na pasta local do usuário:
+- 📄 `Inicial_{CNJ}.pdf` — apenas as páginas da Petição Inicial
+- 📂 `Docs_{CNJ}.pdf` — o restante do processo (documentos anexos, procuração, custas, certidões, etc.)
 
 ---
 
-## 🚀 Como usar
+## ✨ Principais Funcionalidades
 
-1. Abra o arquivo **`index.html`** no Chrome ou Edge (navegadores com suporte à **File System Access API**)
-2. Arraste os PDFs integrais para a área de upload
-3. Clique em **"⚡ Processar e dividir"**
-4. Escolha a pasta de destino (o navegador vai pedir permissão)
-5. Revise o relatório ao final
-
-> ⚠️ **Navegadores suportados:** Chrome, Edge, Opera. Firefox e Safari não suportam a File System Access API usada para salvar os PDFs.
+- ⚡ **Detecção Heurística Automática (Algorithm v7):** Análise multi-fase de vocativos, conectivos, marcadores de sistema e sinalizadores de encerramento (pedidos, valores de causa e assinaturas OAB/Defensoria).
+- 👁️ **OCR de Emergência (Tesseract.js v5):** Fallback automático com reconhecimento óptico de caracteres para PDFs digitalizados/imagem sem camada de texto.
+- 🎯 **Visualizador Customizado & Correção Manual Interativa:**
+  - Visualização nativa em `iframe` para consulta rápida.
+  - Modo **"✏️ Corrigir"** com Canvas dinâmico e botões **"Marcar Início"** e **"Marcar Fim"** diretamente na leitura do documento.
+  - **Zoom Inteligente:** Ajuste automático à tela (*Fit Page* calculado dinamicamente) e controles de Zoom (+/-).
+  - **Rolagem Fluida (Scroll Engine):** Navegação por roda do mouse/trackpad com trava de *cooldown* de 120ms, permitindo troca de páginas suave sem saltos múltiplos em mouses de alta sensibilidade (ex: Logitech MX).
+- 📊 **Dashboard de Auditoria & Estatísticas:**
+  - Métricas em tempo real (Total, Concluídos, A Revisar, Erros).
+  - Barra de progresso animada com log rotativo em tempo real (*mini-log*).
+  - Modal de relatório detalhado com badges de status (✅ OK, ⚠️ Revisar, ❌ Erro).
+- 📈 **Exportação de Dados:** Exportação em formato CSV com suporte a acentuação UTF-8 (BOM nativo) para integração com planilhas e sistemas jurídicos.
+- 🔒 **Privacidade Absoluta (Zero Backend):** Processamento 100% *client-side* via File System Access API. Nenhum byte de dado processado sai da máquina do usuário.
 
 ---
 
-## 📁 Estrutura do repositório
+## 🛠️ Tech Stack & Decisões Arquiteturais
 
-```
+| Componente | Tecnologia | Função / Motivo |
+|------------|------------|-----------------|
+| **Arquitetura** | HTML5 + CSS3 + JS Vanilla (ES2020+) | *Single-file* (`index.html`), sem necessidade de `npm install`, servidor ou build steps. |
+| **Escrita PDF** | `pdf-lib` v1.17.1 (CDN) | Extração e fusão de páginas sem re-compressão nem perda de qualidade visual. |
+| **Leitura PDF** | `pdf.js` v3.11.174 (CDN) | Leitura rápida da camada de texto e renderização em Canvas no visualizador customizado. |
+| **OCR Fallback** | `Tesseract.js` v5 (CDN) | OCR local para converter PDFs em imagem quando a camada de texto nativa não for detectada. |
+| **I/O Local** | File System Access API | Permite leitura e escrita direta em pastas locais no navegador sem downloads manuais. |
+| **Interface** | Glassmorphism & Modern CSS | Interface limpa, responsiva e focada em produtividade operacional. |
+
+---
+
+## 🚀 Como Usar
+
+1. **Abra o app:** Clique duas vezes no arquivo `index.html` em um navegador compatível (**Google Chrome**, **Microsoft Edge** ou **Opera**).
+2. **Selecione os processos:** Arraste um lote de PDFs integrais para a zona de upload (os arquivos devem conter o número CNJ no nome).
+3. **Escolha a pasta de destino:** Clique em **"Avançar e Escolher Destino"** e selecione a pasta onde os arquivos divididos (`Inicial_*.pdf` e `Docs_*.pdf`) serão salvos.
+4. **Acompanhe o processamento:** O dashboard exibirá o progresso e estatísticas em tempo real.
+5. **Audite e Corrija:** 
+   - Abra o **Relatório Detalhado**.
+   - Se algum processo receber a flag **⚠️ Revisar**, clique em **"✏️ Corrigir"** para abrir o visualizador Canvas interativo, ajustar o intervalo de páginas e clicar em **"✂️ Dividir"** para re-gerar os arquivos imediatamente.
+6. **Exporte o relatório:** Baixe o resumo das operações em CSV.
+
+> ⚠️ **Requisito de Navegador:** O suporte à escrita direta em pastas requer navegadores baseados em Chromium (**Chrome 86+**, **Edge 86+**, **Opera 72+**). Firefox e Safari não suportam a File System Access API.
+
+---
+
+## 📁 Estrutura do Projeto
+
+```text
 novodiv/
-├── index.html              # 🟢 O APP INTEIRO (HTML + CSS + JS)
-├── logo.png                # logo Gondim (topo)
-├── favicon.png             # ícone do app
+├── index.html              # 🏆 Aplicação Completa (UI, Algoritmo v7, Viewer & Worker)
+├── logo.png                # Logo da aplicação
+├── favicon.png             # Ícone de aba do navegador
 │
-├── processos/              # 📥 ENTRADA: PDFs integrais a processar
-├── NOVOS/                  # 📥 ENTRADA: PDFs novos a processar
-├── erros/                  # 📥 ENTRADA: PDFs com problemas (gera "erros" no log)
-├── procon/                 # 📥 ENTRADA: PDFs específicos de PROCON
+├── .untracked/             # 🙈 Pastas de trabalho temporárias e testes do usuário (ignorado)
+├── processos/              # 📥 Entrada: Pasta de exemplo para PDFs integrais
+├── NOVOS/                  # 📥 Entrada: PDFs novos a processar
+├── erros/                  # 📥 Entrada: PDFs de casos extremos
+├── procon/                 # 📥 Entrada: PDFs de notificações PROCON
 │
-├── teste1/                 # 📤 SAÍDA: PDFs já divididos (Inicial_* + Docs_*)
+├── teste1/                 # 📤 Saída: Exemplo de PDFs divididos
 │
 ├── docs/
-│   └── LEITURA_PROFUNDA.md # análise técnica do algoritmo
+│   └── LEITURA_PROFUNDA.md # Análise aprofundada da lógica heurística
 │
-├── README.md               # este arquivo
-├── SPEC.md                 # especificação técnica
-├── AGENTS.md               # guia para agentes de IA
-└── LICENSE                 # MIT
+├── README.md               # Este arquivo
+├── SPEC.md                 # Especificação técnica e arquitetural
+├── AGENTS.md               # Diretrizes para agentes de IA e desenvolvedores
+└── LICENSE                 # Licença MIT
 ```
 
 ---
 
-## 🧠 Como funciona (resumo)
+## 🧠 Algoritmo de Detecção (Resumo v7)
 
-O coração do sistema é a função `detectInicialRange()` em `index.html` (Algorithm v7). Ela opera em **3 fases**:
+O algoritmo atua em 4 fases sequenciais:
 
-| Fase | Objetivo | Estratégia |
-|------|----------|------------|
-| **0** | Detectar PROCON | Procura marcadores `TERMO DE NOTIFICAÇÃO` / `PROCON ESTADUAL` nas primeiras 20 páginas |
-| **1** | Encontrar **início** da petição | Regex de vocativos (`EXCELENTÍSSIMO`, `AO DOUTO JUÍZO`...) + refinamentos `INIC1` / `TERMO2` / `pattern_alt` |
-| **2** | Encontrar **fim** da petição | 5 candidatos concorrentes: mudança de ID de doc, novo doc por conteúdo, fechamento + OAB, etc. Pega o mais conservador |
-
-O resultado é um **score de confiança 0-5**, mapeado para porcentagem no relatório. Casos com score < 3 recebem flag `👁️ Revisar`.
-
-📖 Análise técnica completa: [`docs/LEITURA_PROFUNDA.md`](docs/LEITURA_PROFUNDA.md)
-📐 Especificação detalhada: [`SPEC.md`](SPEC.md)
+1. **Fase 0 (Detecção PROCON):** Procura por marcadores de notificações administrativas estaduais.
+2. **Fase 0.5 (OCR de Emergência):** Se as 10 primeiras páginas tiverem menos de 500 caracteres somados, o Tesseract.js renderiza e lê o conteúdo visual.
+3. **Fase 1 (Início da Petição):** Procura vocativos jurídicos formais (`START_PATTERNS`) com refinamentos para petições curtas (`pattern_alt`), sistemas eProc (`inic1`) e termos de autuação (`termo2`).
+4. **Fase 2 (Fim da Petição):** Avalia 5 métricas concorrentes de encerramento (`endById`, `endByContent`, `endByClosingConfirmed`, `endByClosingNoOab`, `endByClosingOnly`) e adota a página final mais **conservadora** (`min`).
 
 ---
 
-## 🛠️ Stack técnica
+## 🤝 Contribuição e Convenções
 
-- **Linguagem:** JavaScript ES2020+ (vanilla, sem build)
-- **PDF read:** [pdf.js](https://mozilla.github.io/pdf.js/) v3.11.174 (via CDN)
-- **PDF write:** [pdf-lib](https://pdf-lib.js.org/) v1.17.1 (via CDN)
-- **Persistência local:** File System Access API (Chrome/Edge)
-- **Sem dependências locais:** zero `npm install`, zero build step
-
----
-
-## 🤝 Contribuição
-
-1. Fork o projeto
-2. Crie uma branch: `git checkout -b feat/minha-melhora`
-3. Commit: `git commit -m "feat: ..."`
-4. Push: `git push origin feat/minha-melhora`
-5. Abra um Pull Request
-
-Veja [`AGENTS.md`](AGENTS.md) para convenções de código, padrão de mensagens de commit e processo de revisão.
+Ao contribuir para o projeto, siga rigorosamente as diretrizes em [`AGENTS.md`](AGENTS.md):
+- **Zero build dependencies:** Não adicionar `package.json`, TypeScript, bundlers ou frameworks.
+- **Single-file core:** Todo o código do app deve permanecer em `index.html`.
+- **Commits:** Padrão *Conventional Commits* em português (ex: `feat(ui): adiciona suporte a zoom fit`).
+- **Privacidade:** Nenhuma chamada externa para envio de dados deve ser introduzida.
 
 ---
 
 ## 📜 Licença
 
-MIT — veja [`LICENSE`](LICENSE).
+Distribuído sob a licença **MIT**. Veja [`LICENSE`](LICENSE) para mais detalhes.
 
 ---
 
 ## 🏢 GanLabs
 
-NovoDiv é mantido por [GanLabs](https://github.com/ganlabs) — laboratório de ferramentas jurídicas com privacidade por padrão.
+Desenvolvido e mantido por **[GanLabs](https://github.com/ganlabs)** — Ferramentas jurídicas com foco em inteligência local e privacidade por padrão.
