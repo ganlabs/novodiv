@@ -24,23 +24,9 @@ yarn-error.log*
 .env.*.local
 
 # ============================================================
-# Pastas de TRABALHO do usuário — NÃO versionar conteúdo
-# (manter a pasta vazia com .gitkeep se necessário)
+# Pastas de TRABALHO e Testes do usuário — NÃO versionar
 # ============================================================
-
-# Entrada de PDFs (o usuário coloca arquivos aqui)
-processos/*
-!processos/.gitkeep
-NOVOS/*
-!NOVOS/.gitkeep
-erros/*
-!erros/.gitkeep
-procon/*
-!procon/.gitkeep
-
-# Saída de PDFs (gerados pelo app)
-teste1/*
-!teste1/.gitkeep
+.untracked/
 
 # Builds (não há build step, mas se um dia houver)
 dist/
@@ -62,4 +48,3 @@ vendor/
 coverage/
 *.lcov
 .nyc_output/
-.untracked/

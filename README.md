@@ -69,13 +69,13 @@ novodiv/
 ├── logo.png                # Logo da aplicação
 ├── favicon.png             # Ícone de aba do navegador
 │
-├── .untracked/             # 🙈 Pastas de trabalho temporárias e testes do usuário (ignorado)
-├── processos/              # 📥 Entrada: Pasta de exemplo para PDFs integrais
-├── NOVOS/                  # 📥 Entrada: PDFs novos a processar
-├── erros/                  # 📥 Entrada: PDFs de casos extremos
-├── procon/                 # 📥 Entrada: PDFs de notificações PROCON
-│
-├── teste1/                 # 📤 Saída: Exemplo de PDFs divididos
+├── .untracked/             # 🙈 Diretório raiz não-versionado contendo PDFs de teste e trabalho:
+│   ├── Baixados/           #    - PDFs baixados de demonstração
+│   ├── processos/          #    - Amostra de PDFs integrais de entrada
+│   ├── NOVOS/              #    - Amostra de PDFs novos a processar
+│   ├── erros/              #    - Amostra de PDFs de casos extremos
+│   ├── procon/             #    - Amostra de notificações do PROCON
+│   └── teste1/             #    - Amostra de PDFs divididos (saída)
 │
 ├── docs/
 │   └── LEITURA_PROFUNDA.md # Análise aprofundada da lógica heurística

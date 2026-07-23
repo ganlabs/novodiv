@@ -44,13 +44,13 @@ novodiv/
 ├── logo.png
 ├── favicon.png
 │
-├── .untracked/             # 🙈 Arquivos de trabalho/testes não versionados
-├── processos/              # 📥 ENTRADA: PDFs integrais a processar
-├── NOVOS/                  # 📥 ENTRADA: PDFs novos a processar
-├── erros/                  # 📥 ENTRADA: PDFs com problemas
-├── procon/                 # 📥 ENTRADA: Notificações PROCON
-│
-├── teste1/                 # 📤 SAÍDA: Exemplo de PDFs divididos
+├── .untracked/             # 🙈 Pasta ÚNICA onde ficam todas as pastas de trabalho/amostras do usuário:
+│   ├── Baixados/           #    - PDFs baixados de demonstração
+│   ├── processos/          #    - PDFs integrais de entrada
+│   ├── NOVOS/              #    - PDFs novos a processar
+│   ├── erros/              #    - PDFs de casos de borda/erro
+│   ├── procon/             #    - Notificações PROCON
+│   └── teste1/             #    - PDFs gerados/divididos
 │
 ├── docs/
 │   └── LEITURA_PROFUNDA.md
@@ -61,7 +61,7 @@ novodiv/
 └── LICENSE
 ```
 
-**Pastas de trabalho e arquivos de teste** (`processos/`, `NOVOS/`, `erros/`, `procon/`, `teste1/`, `.untracked/`) são áreas do usuário — **não versionar PDFs novos**.
+**Todas as pastas de trabalho do usuário e PDFs de teste** devem residir exclusivamente dentro de `.untracked/` — **nunca versionar PDFs ou criar pastas de PDF na raiz do repositório**.
 
 ---
 
@@ -129,7 +129,7 @@ Seguimos **Conventional Commits** em português (título curto) com escopo opcio
 ## 6. Pull Requests e Revisão
 
 ### 6.1 Checklist antes de abrir PR
-- [ ] Mudança foi testada com PDFs reais (de `processos/`, `NOVOS/` ou `procon/`)
+- [ ] Mudança foi testada com PDFs reais (de `.untracked/processos/`, `.untracked/NOVOS/`, etc.)
 - [ ] Relatório gerado confere com a inspeção manual das páginas
 - [ ] Não introduziu dependências locais (`npm`, `package.json`, etc.)
 - [ ] Não quebrou a organização de seções do `index.html`
@@ -153,7 +153,7 @@ Seguimos **Conventional Commits** em português (título curto) com escopo opcio
 - **Não criar arquivos `.js`/`.css` separados** — todo código vai em `index.html`
 - **Não introduzir `package.json`** — sem dependências locais
 - **Não usar frameworks** (React, Vue, Svelte, Alpine) ou TypeScript
-- **Não commitar PDFs reais/novos** em `processos/`, `NOVOS/`, `.untracked/` ou outras pastas de trabalho do usuário
+- **Não commitar PDFs reais/novos** em nenhuma pasta do repositório
 - **Não fazer upload para servidores externos** — privacidade total é requisito absoluto
 - **Não remover a trava de cooldown do scroll** (120ms) do `customViewer`
 
